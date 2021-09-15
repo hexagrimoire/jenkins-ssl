@@ -9,19 +9,33 @@ networks:
     external:
       name: common
 
-#---VOLUMES ---------------------------------------------------
-volumes:
-  data:
-
 #---SERVICES---------------------------------------------------
 services:
+
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      # Redirect my.example.com to https:://letsencrypt.org
+      # The upsteams will be available as <%= domain.upstream %> in Nginx config
+      DOMAINS: 'https-data-local -> http://jenkins:8080'
+      STAGE: local
+    volumes:
+      - https-portal_data:/var/lib/https-portal
+
   jenkins:
-    build: ./jenkins
-    image: 'local/jenkins'
+    image: jenkins/jenkins:lts
     ports:
       - '50000:50000'
-      - '8081:8443'
     volumes:
       - 'data:/var/jenkins_home'
     environment:
       JAVA_OPTS: -Duser.timezone=Asia/Tokyo
+
+
+#---VOLUMES ---------------------------------------------------
+volumes:
+  data:
+  https-portal_data:
